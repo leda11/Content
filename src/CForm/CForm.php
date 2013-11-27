@@ -109,6 +109,7 @@
       public function GetHTML() {
         $id = isset($this['id']) ? $this['id'] : 'form-element-' . $this['name'];
         $class = isset($this['class']) ? " class='{$this['class']}'" : null;
+        
         //new validating
         $validates = (isset($this['validation-pass']) && $this['validation-pass'] === false) ? ' validation-failed' : null;
         $class = (isset($class) || isset($validates)) ? " class='{$class}{$validates}'" : null;
@@ -123,8 +124,7 @@
         $value    = isset($this['value']) ? " value='{$this['value']}'" : null;
         //new validation
          $messages = null;
-         if(isset($this['validation_messages'])) {
-         	 
+         if(isset($this['validation_messages'])) {        	 
          	 $message = null;
          	 foreach($this['validation_messages'] as $val) {
          	 	 $message .= "<li>{$val}</li>\n";
@@ -307,8 +307,8 @@
     /* bortkommenterat i content
     if($attributes == 'form') {
          	 return "<form{$id}{$class}{$name}{$action}{$method}>";
-         }
-         */
+         }*/
+         
                
         $elements = $this->GetHTMLForElements();
         $html = <<< EOD

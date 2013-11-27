@@ -26,7 +26,7 @@ body{
 	color:#fff;
 	min-height:80px;
 } 
-#main {background-color:#FBE4F0;}
+#main {background-color: white;}/*#FBE4F0*/
 
 #footer{
 	background-color:#EEDDF8;
@@ -72,14 +72,26 @@ body{
 .font1{font-family:Tangerine,serif;font-size:48px;}
 .heading {font: Verdana;font-size: 48px;}
 
+
+
 /**
  * Forms -------------------------------------------------------------------------
  */
-.validation-failed{border:2px solid #B25778; margin-top:0.4em}
+input,textarea{font:inherit;}
+input[readonly]{color:#666;}
+label{font-size:smaller; color:black;}
+
+.validation-failed{border:2px solid #B25778; margin-top:0.4em;}
 .validation-message{color:#B25778;font-size:smaller;}
 
-.content-edit input[type=text]{width:30em;}
-.content-edit textarea{width:40em;height:15em;}
+.form-action-link{font-size:smaller;}
+
+
+.content-edit input[type=text]{width:40em;}
+.content-edit textarea{width:40em;height:25em;}
+
+/*försök att få svart ram runt-funkar inte */
+#content-fieldset { color:black;}
 
 /**
 * User feedback message wrappers.------------------------------------------------
@@ -89,7 +101,7 @@ padding: 0.8em; margin-bottom: 1em; border: 2px dotted #E592B1; }
                                        
 .error, .alert { background:#C4528F; color: #fff;} /** #E552E0*/
 .notice, .warning { background: #CAE; color: #fff;  }
-.success { background:#E6D7EA ; color: #fff;  }
+.success { background:#E6D7EA ; color: #6D5E5E;  }
 .info { background: #DBBAE2; color: #fff;  }
 .error a, .alert a { color: #8a1f11; }
 .notice a, .warning a { color: #514721; }

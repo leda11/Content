@@ -47,15 +47,20 @@ class CMContent extends CObject implements IHasSQL, ArrayAccess{
        * added grouptables and questions
        * @param string $key the string that is the key of the wanted SQL-entry in the array.
        */
-      public static function SQL($key=null) {
+      public static function SQL($key=null, $args=null) {
+      	// new technique
+      	$order_order = isset($args['order-order']) ? $args['order-order'] : 'ASC';
+      	$order_by = isset($args['order-by']) ? $args['order-by'] : 'id';
+      	
         $queries = array(   
         	'drop table content' 	=> "DROP TABLE IF EXISTS Content;",
         	'create table content'  => "CREATE TABLE IF NOT EXISTS Content( id INTEGER PRIMARY KEY, key TEXT KEY, type TEXT, title TEXT, data TEXT, idUser INT, created DATETIME default (datetime('now')),updated DATETIME default NULL, deleted DATETIME default NULL, FOREIGN KEY(idUser) REFERENCES User(id));",
-        	'insert content'   => 'INSERT INTO Content (key, type, title, data, idUser) VALUES (?,?,?,?,?) ;',       								    
+        	'insert content'  	    => 'INSERT INTO Content (key, type, title, data, idUser) VALUES (?,?,?,?,?) ;',       								    
         	'update content'  		=> "UPDATE  Content SET  key=?, type=?, title=?, data=?, updated=datetime('now') where id=? ;",
+        	'get all content by type'=> "SELECT c.*, u.acronym as owner FROM Content AS c INNER JOIN User as u ON c.idUser=u.id WHERE type=? ORDER BY {$order_by} {$order_order};",
         	
         	'get content by id'		=> 'SELECT c.*, u.acronym as owner FROM Content AS c INNER JOIN User as u ON c.idUser=u.id WHERE c.id=?;',
-        	'get content by key'	=> 'SELECT c.*, u.acronym as owner FROM Content AS c INNER JOIN User as u ON c.idUser=u.id WHERE c.key=?;',
+        	'get content by key'	=> 'SELECT c.*, u.acronym as owner FROM Content AS c INNER JOIN User as u ON c.idUser=u.id WHERE key=?;',
         	'get all content'		=> 'SELECT c.*, u.acronym as owner FROM Content AS c INNER JOIN User as u ON c.idUser=u.id;',
         	);
       if(!isset($queries[$key])) {
@@ -70,7 +75,13 @@ class CMContent extends CObject implements IHasSQL, ArrayAccess{
           $this->db->ExecuteQuery(self::SQL('drop table content'));
           $this->db->ExecuteQuery(self::SQL('create table content'));
           $this->db->ExecuteQuery(self::SQL('insert content'), array('Hejsan!', 'post', 'Testing', 'En testtesx för att se hur det fungerar', $this->user['id'] ));
-          
+          $this->db->ExecuteQuery(self::SQL('insert content'), array('Programmering!', 'post', 'vilka språk är roligast?', 'Det finns väldigt många språk inom programmering.', $this->user['id'] ));
+          $this->db->ExecuteQuery(self::SQL('insert content'), array('Vinter!', 'post', 'Vintern är kall.', 'En testtesx för att se hur det fungerar', $this->user['id'] ));
+          $this->db->ExecuteQuery(self::SQL('insert content'), array('Semester!', 'page', 'Äntligen semester', 'Vad kan man göra på semestern. Ja det finns hur mycket som helst att välja på.', $this->user['id'] ));
+          $this->db->ExecuteQuery(self::SQL('insert content'), array('Politik!', 'post', 'Politik är det kul?', 'idag så är det väldigt få undommar som är intresserade av politik.', $this->user['id'] ));
+          $this->db->ExecuteQuery(self::SQL('insert content'), array('home', 'page', 'Home page', 'This is a demo page, this could be your personal home-page.', $this->user['id']));
+          $this->db->ExecuteQuery(self::SQL('insert content'), array('about', 'page', 'About page', 'This is a demo page, this could be your personal about-page.', $this->user['id']));
+           
           $this->session->AddMessage('success', 'Successfully created the database tables and created a testing post in the blog.<br/>');
         } catch(Exception$e) {
           die("$e<br/>Failed to open database: " . $this->config['database'][0]['dsn']);
@@ -106,11 +117,16 @@ class CMContent extends CObject implements IHasSQL, ArrayAccess{
    *
    * @returns array with listing or null if empty.
    */
-      public function ListAll(){
+      public function ListAll($args=null){
       	  try{
-      	  	  return $this->db->ExecuteSelectQueryAndFetchAll(self::SQL('get all content'));
+      	  	  if (isset($args) && isset($args['type'])){      	  	  	  
+      	  	  	  return $this->db->ExecuteSelectQueryAndFetchAll(self::SQL('get all content by type', $args), array($args['type'] ));
+      	  	  }else{
+      	  	  	  return $this->db->ExecuteSelectQueryAndFetchAll(self::SQL('get all content', $args ));     	  	  	  
+      	  	  }	  	  	  
       	  } catch(Exception$e) {
-      	  	  	  return null;    	  	 
+      	  	  echo $e;
+      	  	  return null;    	  	 
       	  }
       }
  // ----------------------------------------------------------------------------------  

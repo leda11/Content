@@ -51,7 +51,7 @@ class CMContent extends CObject implements IHasSQL, ArrayAccess{
         $queries = array(   
         	'drop table content' 	=> "DROP TABLE IF EXISTS Content;",
         	'create table content'  => "CREATE TABLE IF NOT EXISTS Content( id INTEGER PRIMARY KEY, key TEXT KEY, type TEXT, title TEXT, data TEXT, idUser INT, created DATETIME default (datetime('now')),updated DATETIME default NULL, deleted DATETIME default NULL, FOREIGN KEY(idUser) REFERENCES User(id));",
-        	'insert into content'   => 'INSERT INTO Content (key, type, title, data, idUser) VALUES (?,?,?,?,?) ;',       								    
+        	'insert content'   => 'INSERT INTO Content (key, type, title, data, idUser) VALUES (?,?,?,?,?) ;',       								    
         	'update content'  		=> "UPDATE  Content SET  key=?, type=?, title=?, data=?, updated=datetime('now') where id=? ;",
         	
         	'get content by id'		=> 'SELECT c.*, u.acronym as owner FROM Content AS c INNER JOIN User as u ON c.idUser=u.id WHERE c.id=?;',
@@ -69,9 +69,9 @@ class CMContent extends CObject implements IHasSQL, ArrayAccess{
         try {
           $this->db->ExecuteQuery(self::SQL('drop table content'));
           $this->db->ExecuteQuery(self::SQL('create table content'));
-          $this->db->ExecuteQuery(self::SQL('insert into content'), array('Hejsan!', 'post', 'Testing', 'En testtesx för att se hur det fungerar', $this->user['id'] ));
+          $this->db->ExecuteQuery(self::SQL('insert content'), array('Hejsan!', 'post', 'Testing', 'En testtesx för att se hur det fungerar', $this->user['id'] ));
           
-          $this->session->AddMessage('notice', 'Successfully created the database tables and created a testing post in the blog.<br/>');
+          $this->session->AddMessage('success', 'Successfully created the database tables and created a testing post in the blog.<br/>');
         } catch(Exception$e) {
           die("$e<br/>Failed to open database: " . $this->config['database'][0]['dsn']);
         }
@@ -82,33 +82,35 @@ class CMContent extends CObject implements IHasSQL, ArrayAccess{
      * 
      * @returns boolean true if success else false.
      */
-      public function save(){
-      	  $msg=null;
-      	  if($this['id']){ 
-      	  	  $this->db->ExecuteQuery(self::SQL('update content'), array($this['key'], $this['type'], $this['title'], $this['data'], $this['id']) );
-      	  }else{
-      	  	 $this->db->ExecuteQuery(self::SQL('insert into content'), array($this['key'], $this['type'], $this['title'], $this['data'], $this['id']) ); // create new post 	  	  
-      	  	 $this['id'] = $this->db->LastInsertId();
-      	  	 $msg = 'created';
-      	  }
-      	  $rowcount = $this->db->RowCount();
-      	  if($rowcount) {
-      	  	  $this->AddMessage('success', "Successfully {$msg} content '{$this['key']}'.");
-      	  } else {
-      	  	  $this->AddMessage('error', "Failed to {$msg} content '{$this['key']}'.");
-      	  }
-      	  
-      	  return $this->db->RowCount() === 1;  
-      }
+    public function Save() {
+    $msg = null;
+    if($this['id']) {
+      $this->db->ExecuteQuery(self::SQL('update content'), array($this['key'], $this['type'], $this['title'], $this['data'], $this['id']));
+      $msg = 'updated';
+    } else {
+      $this->db->ExecuteQuery(self::SQL('insert content'), array($this['key'], $this['type'], $this['title'], $this['data'], $this->user['id']));
+      $this['id'] = $this->db->LastInsertId();
+      $msg = 'created';
+    }
+    $rowcount = $this->db->RowCount();
+    if($rowcount) {
+      $this->AddMessage('success', "Successfully {$msg} content '" . htmlEnt($this['key']) . "'.");
+    } else {
+      $this->AddMessage('error', "Failed to {$msg} content '" . htmlEnt($this['key']) . "'.");
+    }
+    return $rowcount === 1;
+  }
 // ----------------------------------------------------------------------------------  
       /**
    * List all content.
    *
    * @returns array with listing or null if empty.
    */
-      public function ListAll(){
+      public function ListAll($arguments=null){
       	  try{
-      	  	  return $this->db->ExecuteSelectQueryAndFetchAll(self::SQL('get all content'));
+      	  	  if ($arguments['type']){
+      	  	  	  
+      	  	  	  return $this->db->ExecuteSelectQueryAndFetchAll(self::SQL('get all content', array($arguments['type'], ));
       	  } catch(Exception$e) {
       	  	  	  return null;    	  	 
       	  }
