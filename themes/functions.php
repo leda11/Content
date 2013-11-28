@@ -142,3 +142,31 @@ function create_url($urlOrController=null, $method=null, $arguments=null) {
     function get_gravatar($size=null) {
       return 'http://www.gravatar.com/avatar/' . md5(strtolower(trim(CHandy::Instance()->user['email']))) . '.jpg?' . ($size ? "s=$size" : null);
     }
+ //--------------------------------------------------------------------------
+ 
+ 
+/**
+* Filter data according to a filter. Uses CMContent::Filter()
+*
+* @param $data string the data-string to filter.
+* @param $filter string the filter to use.
+* @returns string the filtered string.
+*/
+function filter_data($data, $filter) {
+  return CMContent::Filter($data, $filter);
+}
+//--------------------------------------------------------------------------
+
+/**
+* Escape data to make it safe to write in the browser.
+*
+* @param $str string to escape.
+* @returns string the escaped string.
+*/
+function esc($str) {
+  return htmlEnt($str);
+}
+
+
+
+    

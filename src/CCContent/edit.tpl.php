@@ -16,8 +16,8 @@
       Content not yet created.
     <?php endif; ?>
 
-    <?php if(isset($content['updated'])):?>
-      Last updated at <?=$content['updated']?>.
+    <?php if(isset($content['update'])):?>
+      Last updated at <?=$content['update']?>.
     <?php endif; ?>
     </em></p>
 

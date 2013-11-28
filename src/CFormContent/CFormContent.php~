@@ -20,7 +20,11 @@
       public function __construct($content) {
         parent::__construct();
         $this->content = $content;
+        //test id
+        //echo $content['id']. ": Från CFormContent</br>";
         $save = isset($content['id']) ? 'save' : 'create';
+        //test
+        //echo "save-variabeln:". $save;
         $this->AddElement(new CFormElementHidden('id', array('value'=>$content['id'])))
              ->AddElement(new CFormElementText('title', array('value'=>$content['title'])))
              ->AddElement(new CFormElementText('key', array('value'=>$content['key'])))

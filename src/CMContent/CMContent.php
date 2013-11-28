@@ -54,9 +54,11 @@ class CMContent extends CObject implements IHasSQL, ArrayAccess{
       	
         $queries = array(   
         	'drop table content' 	=> "DROP TABLE IF EXISTS Content;",
-        	'create table content'  => "CREATE TABLE IF NOT EXISTS Content( id INTEGER PRIMARY KEY, key TEXT KEY, type TEXT, title TEXT, data TEXT, idUser INT, created DATETIME default (datetime('now')),updated DATETIME default NULL, deleted DATETIME default NULL, FOREIGN KEY(idUser) REFERENCES User(id));",
-        	'insert content'  	    => 'INSERT INTO Content (key, type, title, data, idUser) VALUES (?,?,?,?,?) ;',       								    
-        	'update content'  		=> "UPDATE  Content SET  key=?, type=?, title=?, data=?, updated=datetime('now') where id=? ;",
+        	'create table content'  => "CREATE TABLE IF NOT EXISTS Content( id INTEGER PRIMARY KEY, key TEXT KEY, type TEXT, title TEXT, data TEXT, idUser INT, filter TEXT, created DATETIME default (datetime('now')),updated DATETIME default NULL, deleted DATETIME default NULL, FOREIGN KEY(idUser) REFERENCES User(id));",
+        	'insert content'  	    => 'INSERT INTO Content (key, type, title, data, idUser, filter) VALUES (?,?,?,?,?, ?) ;',       								    
+        	'update content'  		=> "UPDATE  Content SET  key=?, type=?, title=?, data=?, filter=?, updated=datetime('now') where id=? ;",
+        	 'update content' 		=> "UPDATE Content SET key=?, type=?, title=?, data=?, filter=?, updated=datetime('now') WHERE id=?;",
+        	
         	'get all content by type'=> "SELECT c.*, u.acronym as owner FROM Content AS c INNER JOIN User as u ON c.idUser=u.id WHERE type=? ORDER BY {$order_by} {$order_order};",
         	
         	'get content by id'		=> 'SELECT c.*, u.acronym as owner FROM Content AS c INNER JOIN User as u ON c.idUser=u.id WHERE c.id=?;',
@@ -74,13 +76,13 @@ class CMContent extends CObject implements IHasSQL, ArrayAccess{
         try {
           $this->db->ExecuteQuery(self::SQL('drop table content'));
           $this->db->ExecuteQuery(self::SQL('create table content'));
-          $this->db->ExecuteQuery(self::SQL('insert content'), array('Hejsan!', 'post', 'Testing', 'En testtesx för att se hur det fungerar', $this->user['id'] ));
-          $this->db->ExecuteQuery(self::SQL('insert content'), array('Programmering!', 'post', 'vilka språk är roligast?', 'Det finns väldigt många språk inom programmering.', $this->user['id'] ));
-          $this->db->ExecuteQuery(self::SQL('insert content'), array('Vinter!', 'post', 'Vintern är kall.', 'En testtesx för att se hur det fungerar', $this->user['id'] ));
-          $this->db->ExecuteQuery(self::SQL('insert content'), array('Semester!', 'page', 'Äntligen semester', 'Vad kan man göra på semestern. Ja det finns hur mycket som helst att välja på.', $this->user['id'] ));
-          $this->db->ExecuteQuery(self::SQL('insert content'), array('Politik!', 'post', 'Politik är det kul?', 'idag så är det väldigt få undommar som är intresserade av politik.', $this->user['id'] ));
-          $this->db->ExecuteQuery(self::SQL('insert content'), array('home', 'page', 'Home page', 'This is a demo page, this could be your personal home-page.', $this->user['id']));
-          $this->db->ExecuteQuery(self::SQL('insert content'), array('about', 'page', 'About page', 'This is a demo page, this could be your personal about-page.', $this->user['id']));
+          $this->db->ExecuteQuery(self::SQL('insert content'), array('Hejsan!', 'post', 'Testing', 'En testtesx för att se hur det fungerar', $this->user['id'], 'plain' ));
+          $this->db->ExecuteQuery(self::SQL('insert content'), array('Programmering!', 'post', 'vilka språk är roligast?', 'Det finns väldigt många språk inom programmering.', $this->user['id'], 'plain' ));
+          $this->db->ExecuteQuery(self::SQL('insert content'), array('Vinter!', 'post', 'Vintern är kall.', 'En testtesx för att se hur det fungerar', $this->user['id'], 'plain' ));
+          $this->db->ExecuteQuery(self::SQL('insert content'), array('Semester!', 'page', 'Äntligen semester', 'Vad kan man göra på semestern. Ja det finns hur mycket som helst att välja på.', $this->user['id'], 'plain' ));
+          $this->db->ExecuteQuery(self::SQL('insert content'), array('Politik!', 'post', 'Politik är det kul?', 'idag så är det väldigt få undommar som är intresserade av politik.', $this->user['id'], 'plain' ));
+          $this->db->ExecuteQuery(self::SQL('insert content'), array('home', 'page', 'Home page', 'This is a demo page, this could be your personal home-page.', $this->user['id'], 'plain'));
+          $this->db->ExecuteQuery(self::SQL('insert content'), array('about', 'page', 'About page', 'This is a demo page, this could be your personal about-page.', $this->user['id'], 'plain'));
            
           $this->session->AddMessage('success', 'Successfully created the database tables and created a testing post in the blog.<br/>');
         } catch(Exception$e) {
@@ -96,10 +98,10 @@ class CMContent extends CObject implements IHasSQL, ArrayAccess{
     public function Save() {
     $msg = null;
     if($this['id']) {
-      $this->db->ExecuteQuery(self::SQL('update content'), array($this['key'], $this['type'], $this['title'], $this['data'], $this['id']));
-      $msg = 'updated';
+      $this->db->ExecuteQuery(self::SQL('update content'), array($this['key'], $this['type'], $this['title'], $this['data'], $this['filter'], $this['id']));
+      $msg = 'update';
     } else {
-      $this->db->ExecuteQuery(self::SQL('insert content'), array($this['key'], $this['type'], $this['title'], $this['data'], $this->user['id']));
+      $this->db->ExecuteQuery(self::SQL('insert content'), array($this['key'], $this['type'], $this['title'], $this['data'], $this->user['id'],  $this['filter']));
       $this['id'] = $this->db->LastInsertId();
       $msg = 'created';
     }
@@ -148,6 +150,32 @@ class CMContent extends CObject implements IHasSQL, ArrayAccess{
       	  }
       	  return true;
       }
-      
-      
+ //-----------------------------------------------------------------------------     
+  /**
+* Filter content according to a filter.
+*
+* @param $data string of text to filter and format according its filter settings.
+* @returns string with the filtered data.
+*/
+  public static function Filter($data, $filter) {
+    switch($filter) {
+      /*case 'php': $data = nl2br(makeClickable(eval('?>'.$data))); break;
+case 'html': $data = nl2br(makeClickable($data)); break;*/
+      case 'plain':
+      default: $data = nl2br(makeClickable(htmlEnt($data))); break;
+    }
+    return $data;
+  }
+  
+  
+  /**
+* Get the filtered content.
+*
+* @returns string with the filtered data.
+*/
+  public function GetFilteredData() {
+    return $this->Filter($this['data'], $this['filter']);
+  }
+  
+  
 }
